@@ -1,36 +1,7 @@
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { auth, authorizeRoles } = require('../middleware/auth');
-const router = express.Router();
+import User from "../models/User.js";
+import { body, validationResult } from "express-validator";
 
-// Configure multer for UPI QR code uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, 'upi-' + Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      return cb(new Error('Only image files are allowed!'), false);
-    }
-    cb(null, true);
-  }
-});
-
-// Get user profile
-router.get('/profile', auth, async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     res.json(user);
@@ -38,14 +9,9 @@ router.get('/profile', auth, async (req, res) => {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Update user profile
-router.put('/profile', auth, [
-  body('name').optional().notEmpty().withMessage('Name cannot be empty'),
-  body('phone').optional().notEmpty().withMessage('Phone cannot be empty'),
-  body('email').optional().isEmail().withMessage('Valid email is required')
-], async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -71,10 +37,9 @@ router.put('/profile', auth, [
     console.error('Update profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Upload UPI QR code
-router.post('/upload-upi-qr', auth, upload.single('qrCode'), async (req, res) => {
+export const uploadUPIQR = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -91,10 +56,9 @@ router.post('/upload-upi-qr', auth, upload.single('qrCode'), async (req, res) =>
     console.error('Upload UPI QR error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get all farmers (for consumers)
-router.get('/farmers', async (req, res) => {
+export const getFarmers = async (req, res) => {
   try {
     const { state, district } = req.query;
     
@@ -112,6 +76,4 @@ router.get('/farmers', async (req, res) => {
     console.error('Get farmers error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
-
-module.exports = router;
+};

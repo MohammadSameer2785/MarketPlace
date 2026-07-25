@@ -1,16 +1,8 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const Order = require('../models/Order');
-const Crop = require('../models/Crop');
-const { auth, authorizeRoles } = require('../middleware/auth');
-const router = express.Router();
+import Order from "../models/Order.js";
+import Crop from "../models/Crop.js";
+import { body, validationResult } from "express-validator";
 
-// Create new order (Consumer only)
-router.post('/', auth, authorizeRoles('consumer'), [
-  body('cropId').notEmpty().withMessage('Crop ID is required'),
-  body('quantity').isNumeric().withMessage('Quantity must be a number'),
-  body('upiId').notEmpty().withMessage('UPI ID is required')
-], async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -19,7 +11,6 @@ router.post('/', auth, authorizeRoles('consumer'), [
 
     const { cropId, quantity, upiId } = req.body;
 
-    // Get crop details
     const crop = await Crop.findById(cropId).populate('farmer', 'name email phone');
     if (!crop || !crop.isActive) {
       return res.status(404).json({ message: 'Crop not found or not available' });
@@ -29,10 +20,8 @@ router.post('/', auth, authorizeRoles('consumer'), [
       return res.status(400).json({ message: 'Requested quantity exceeds available quantity' });
     }
 
-    // Calculate total price
     let totalPrice = crop.price * quantity;
     
-    // Convert units if needed
     if (crop.priceUnit === 'quintal' && crop.quantityUnit === 'kg') {
       totalPrice = (crop.price / 100) * quantity;
     } else if (crop.priceUnit === 'kg' && crop.quantityUnit === 'quintal') {
@@ -50,7 +39,6 @@ router.post('/', auth, authorizeRoles('consumer'), [
 
     await order.save();
 
-    // Update crop quantity
     crop.quantity -= quantity;
     crop.saleFrequency += 1;
     await crop.save();
@@ -63,13 +51,11 @@ router.post('/', auth, authorizeRoles('consumer'), [
 
     res.status(201).json(order);
   } catch (error) {
-    console.error('Create order error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get buyer's orders
-router.get('/my-orders', auth, authorizeRoles('consumer'), async (req, res) => {
+export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ buyer: req.user._id })
       .populate('farmer', 'name phone address')
@@ -81,10 +67,9 @@ router.get('/my-orders', auth, authorizeRoles('consumer'), async (req, res) => {
     console.error('Get buyer orders error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get farmer's orders
-router.get('/farmer-orders', auth, authorizeRoles('farmer'), async (req, res) => {
+export const getFarmerOrders = async (req, res) => {
   try {
     const orders = await Order.find({ farmer: req.user._id })
       .populate('buyer', 'name phone address')
@@ -96,12 +81,9 @@ router.get('/farmer-orders', auth, authorizeRoles('farmer'), async (req, res) =>
     console.error('Get farmer orders error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Update order status (Farmer only)
-router.put('/:id/status', auth, authorizeRoles('farmer'), [
-  body('status').isIn(['confirmed', 'completed', 'cancelled']).withMessage('Invalid status')
-], async (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -137,12 +119,9 @@ router.put('/:id/status', auth, authorizeRoles('farmer'), [
     console.error('Update order status error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Confirm payment (Consumer only)
-router.put('/:id/payment', auth, authorizeRoles('consumer'), [
-  body('paymentId').notEmpty().withMessage('Payment ID is required')
-], async (req, res) => {
+export const confirmPayment = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -166,7 +145,6 @@ router.put('/:id/payment', auth, authorizeRoles('consumer'), [
 
     await order.save();
 
-    // Generate receipt URL (in a real app, this would be a proper PDF generation)
     order.receiptUrl = `/api/orders/${order._id}/receipt`;
     await order.save();
 
@@ -181,10 +159,9 @@ router.put('/:id/payment', auth, authorizeRoles('consumer'), [
     console.error('Confirm payment error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get order receipt
-router.get('/:id/receipt', auth, async (req, res) => {
+export const getReceipt = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate('buyer', 'name email phone address')
@@ -200,7 +177,6 @@ router.get('/:id/receipt', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view this receipt' });
     }
 
-    // Generate receipt HTML
     const receiptHtml = `
     <!DOCTYPE html>
     <html>
@@ -284,6 +260,4 @@ router.get('/:id/receipt', auth, async (req, res) => {
     console.error('Get receipt error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
-
-module.exports = router;
+};

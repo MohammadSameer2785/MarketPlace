@@ -28,10 +28,8 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await axios.get('/api/users/profile');
-      console.log('Fetched user:', response.data);
       setUser(response.data);
     } catch (error) {
-      console.error('Failed to fetch user:', error);
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
     } finally {
@@ -73,7 +71,6 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      console.log('Sending registration data:', userData);
       const response = await axios.post('/api/auth/register', userData);
       const { token, user } = response.data;
       

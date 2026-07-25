@@ -1,28 +1,22 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { generateAndSendOTP, verifyOTP, checkOTPRateLimit, updateOTPRateLimit } = require('../services/otpService');
-const router = express.Router();
+import { generateToken } from "../lib/utils.js";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import { generateAndSendOTP, verifyOTP, checkOTPRateLimit, updateOTPRateLimit } from "../services/otpService.js";
+import { body, validationResult } from "express-validator";
 
-// Register
-router.post('/register', [
-  body('name').notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['farmer', 'consumer']).withMessage('Role must be farmer or consumer'),
-  body('phone').notEmpty().withMessage('Phone number is required')
-], async (req, res) => {
+export const signup = async (req, res) => {
+  const { name, email, password, role, phone, address } = req.body;
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, role, phone, address } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists (case-insensitive)
+    const existingUser = await User.findOne({ 
+      email: { $regex: new RegExp(`^${email}$`, 'i') } 
+    });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists. Please try a different email or login.' });
     }
@@ -47,37 +41,31 @@ router.post('/register', [
     }
 
     const user = new User(userData);
-
-    await user.save();
+    const savedUser = await user.save();
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    generateToken(savedUser._id, res);
 
     res.status(201).json({
-      token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        phone: user.phone,
-        address: user.address
+        id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role,
+        phone: savedUser.phone,
+        address: savedUser.address
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    if (error.code === 11000) {
+      // Duplicate key error from MongoDB
+      return res.status(400).json({ message: 'User with this email already exists. Please try a different email or login.' });
+    }
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Request OTP
-router.post('/request-otp', [
-  body('email').isEmail().withMessage('Valid email is required')
-], async (req, res) => {
+export const requestOTP = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -110,14 +98,9 @@ router.post('/request-otp', [
     console.error('Request OTP error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Login with OTP
-router.post('/login-with-otp', [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
-  body('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
+export const loginWithOTP = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -145,14 +128,9 @@ router.post('/login-with-otp', [
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    generateToken(user._id, res);
 
     res.json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -168,13 +146,9 @@ router.post('/login-with-otp', [
     console.error('Login with OTP error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Login (traditional password only - for demo accounts)
-router.post('/login', [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
+export const login = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -196,14 +170,9 @@ router.post('/login', [
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    generateToken(user._id, res);
 
     res.json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -217,8 +186,43 @@ router.post('/login', [
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'server error' });
+    res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-module.exports = router;
+export const logout = (_, res) => {
+  res.cookie("jwt", "", { maxAge: 0 });
+  res.status(200).json({ message: 'Logged out successfully' });
+};
+
+export const checkAuth = async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    
+    if (!token) {
+      return res.status(200).json(null);
+    }
+
+    const jwt = await import('jsonwebtoken');
+    const decoded = jwt.default.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (!user) {
+      return res.status(200).json(null);
+    }
+
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      address: user.address,
+      upiId: user.upiId,
+      upiQrCode: user.upiQrCode
+    });
+  } catch (error) {
+    console.error('Check auth error:', error);
+    res.status(200).json(null);
+  }
+};

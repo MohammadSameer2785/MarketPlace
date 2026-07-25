@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import axios from 'axios';
 import { ShoppingCart, Package, TrendingUp, Clock, CheckCircle, XCircle, Download, ExternalLink } from 'lucide-react';
 
 const ConsumerDashboard = () => {
-  const { user } = useAuth();
+  const { authUser } = useAuthStore();
   const [orders, setOrders] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalSpent: 0,
@@ -18,7 +19,29 @@ const ConsumerDashboard = () => {
   useEffect(() => {
     fetchOrders();
     fetchStats();
+    updateCartCount();
+    
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      updateCartCount();
+    };
+    
+    window.addEventListener('cart-updated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, []);
+
+  const updateCartCount = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartCount(cart.length);
+    } catch (error) {
+      console.error('Error updating cart count:', error);
+      setCartCount(0);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -95,7 +118,7 @@ const ConsumerDashboard = () => {
     );
   }
 
-  if (!user) {
+  if (!authUser) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
@@ -111,7 +134,7 @@ const ConsumerDashboard = () => {
     );
   }
 
-  if (user.role !== 'consumer') {
+  if (authUser.role !== 'consumer') {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
@@ -204,9 +227,12 @@ const ConsumerDashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Cart Items</h3>
           <p className="text-gray-600 mb-4">View items in your shopping cart</p>
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-            View Cart (0)
-          </button>
+          <Link
+            to="/cart"
+            className="block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-center"
+          >
+            View Cart ({cartCount})
+          </Link>
         </div>
       </div>
 

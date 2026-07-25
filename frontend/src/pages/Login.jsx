@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import { Mail, Lock, Eye, EyeOff, Shield, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const Login = () => {
-  const { login, loginWithOTP } = useAuth();
+  const { login } = useAuthStore();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -67,30 +67,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      if (useOTP) {
-        if (!formData.otp) {
-          setError('Please enter the OTP sent to your email');
-          setLoading(false);
-          return;
-        }
-
-        // Login with OTP using AuthContext
-        const result = await loginWithOTP(formData.email, formData.password, formData.otp);
-        
-        if (result.success) {
-          navigate(result.user.role === 'farmer' ? '/farmer-dashboard' : '/consumer-dashboard');
-        } else {
-          setError(result.message);
-        }
+      await login({ email: formData.email, password: formData.password });
+      
+      // Redirect to respective dashboard based on role
+      const { authUser } = useAuthStore.getState();
+      if (authUser?.role === 'farmer') {
+        navigate('/farmer-dashboard');
+      } else if (authUser?.role === 'consumer') {
+        navigate('/consumer-dashboard');
       } else {
-        // Traditional login
-        const result = await login(formData.email, formData.password);
-        
-        if (result.success) {
-          navigate(result.user.role === 'farmer' ? '/farmer-dashboard' : '/consumer-dashboard');
-        } else {
-          setError(result.message);
-        }
+        navigate('/');
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
@@ -276,24 +262,8 @@ const Login = () => {
           </div>
         </form>
 
-        {/* Demo Accounts */}
-        <div className="mt-6 border-t pt-6">
-          <p className="text-center text-sm text-gray-600 mb-4">
-            Demo Accounts (for testing):
-          </p>
-          <div className="space-y-2">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-700">Farmer Account:</p>
-              <p className="text-xs text-gray-600">Email: farmer@demo.com</p>
-              <p className="text-xs text-gray-600">Password: demo123</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-700">Consumer Account:</p>
-              <p className="text-xs text-gray-600">Email: consumer@demo.com</p>
-              <p className="text-xs text-gray-600">Password: demo123</p>
-            </div>
-          </div>
-        </div>
+       
+       
       </div>
     </div>
   );

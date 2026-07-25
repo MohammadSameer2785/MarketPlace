@@ -1,30 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import axios from 'axios';
 import { ShoppingCart, IndianRupee, MapPin, User, Phone, QrCode, Check } from 'lucide-react';
 
 const Checkout = () => {
   const { cropId } = useParams();
-  const { user } = useAuth();
+  const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const [crop, setCrop] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [upiConfig, setUpiConfig] = useState({});
+  const [isCartCheckout, setIsCartCheckout] = useState(false);
 
   useEffect(() => {
-    if (!user || user.role !== 'consumer') {
+    if (!authUser || authUser.role !== 'consumer') {
       navigate('/login');
       return;
     }
 
-    fetchCropDetails();
+    if (cropId) {
+      // Single item checkout
+      fetchCropDetails();
+    } else {
+      // Cart checkout
+      loadCartItems();
+    }
     fetchUpiConfig();
-  }, [cropId, user, navigate]);
+  }, [cropId, authUser, navigate]);
+
+  const loadCartItems = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      if (cart.length === 0) {
+        navigate('/marketplace');
+        return;
+      }
+      setCartItems(cart);
+      setIsCartCheckout(true);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      navigate('/marketplace');
+    }
+  };
 
   const fetchCropDetails = async () => {
     try {
@@ -48,11 +72,16 @@ const Checkout = () => {
       const response = await axios.get('/api/upi-config');
       setUpiConfig(response.data);
     } catch (error) {
-      console.error('Failed to fetch UPI config:', error);
+      // Set default UPI ID if fetch fails
+      setUpiConfig({ upiId: 'shivanakkanagoni17@okaxis' });
     }
   };
 
   const calculateTotalPrice = () => {
+    if (isCartCheckout) {
+      return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
     if (!crop) return 0;
     
     let totalPrice = crop.price * quantity;
@@ -68,24 +97,64 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (quantity > crop.quantity) {
-      alert('Requested quantity exceeds available quantity!');
-      return;
-    }
-
     setProcessing(true);
     try {
-      const response = await axios.post('/api/orders', {
-        cropId: crop._id,
-        quantity,
-        upiId: upiConfig.upiId
-      });
+      if (isCartCheckout) {
+        // Place orders for all cart items
+        for (const item of cartItems) {
+          if (!upiConfig.upiId) {
+            throw new Error('UPI ID is not configured');
+          }
 
-      setOrderId(response.data._id);
-      setOrderPlaced(true);
+          await axios.post('/api/orders', {
+            cropId: item.cropId,
+            quantity: Number(item.quantity),
+            upiId: upiConfig.upiId
+          });
+        }
+        // Clear cart after successful orders
+        localStorage.setItem('cart', JSON.stringify([]));
+        window.dispatchEvent(new Event('cart-updated'));
+        setOrderPlaced(true);
+        // For cart checkout, redirect to consumer dashboard since multiple orders are placed
+        setTimeout(() => {
+          navigate('/consumer-dashboard');
+        }, 2000);
+      } else {
+        // Single item checkout
+        if (quantity > crop.quantity) {
+          alert('Requested quantity exceeds available quantity!');
+          return;
+        }
+
+        if (!upiConfig.upiId) {
+          throw new Error('UPI ID is not configured');
+        }
+
+        const response = await axios.post('/api/orders', {
+          cropId: crop._id,
+          quantity: Number(quantity),
+          upiId: upiConfig.upiId
+        });
+
+        setOrderId(response.data._id);
+        setOrderPlaced(true);
+      }
     } catch (error) {
       console.error('Failed to place order:', error);
-      alert('Failed to place order. Please try again.');
+      if (error.response) {
+        console.error('Error status:', error.response.status);
+        console.error('Error data:', JSON.stringify(error.response.data, null, 2));
+        console.error('Error headers:', error.response.headers);
+        const errorMessage = error.response.data?.message || 
+                           error.response.data?.errors?.[0]?.msg || 
+                           error.response.data?.error || 
+                           'Unknown error';
+        alert(`Failed to place order: ${errorMessage}`);
+      } else {
+        console.error('Network error:', error.message);
+        alert(`Failed to place order: ${error.message}`);
+      }
     } finally {
       setProcessing(false);
     }
@@ -115,7 +184,7 @@ const Checkout = () => {
     );
   }
 
-  if (!crop) {
+  if (!isCartCheckout && !crop) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Crop not found</h2>
@@ -145,83 +214,126 @@ const Checkout = () => {
           </h2>
 
           <div className="space-y-4">
-            {/* Crop Info */}
-            <div className="flex items-start space-x-4 pb-4 border-b">
-              {crop.image ? (
-                <img
-                  src={crop.image}
-                  alt={crop.name}
-                  className="w-20 h-20 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🌱</span>
+            {isCartCheckout ? (
+              // Cart Items Display
+              cartItems.map((item) => (
+                <div key={item.cropId} className="flex items-start space-x-4 pb-4 border-b">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-20 h-20 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-green-100 rounded-lg flex items-center justify-center">
+                      <span className="text-3xl">🌱</span>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                    <p className="text-sm text-gray-600">Farmer: {item.farmer?.name || 'Unknown'}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <IndianRupee className="w-4 h-4 text-gray-600" />
+                      <span className="font-bold">{item.price}</span>
+                      <span className="text-sm text-gray-600">/{item.priceUnit}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Quantity: {item.quantity}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <IndianRupee className="w-4 h-4 text-gray-600" />
+                      <span className="font-bold">{(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">{crop.name}</h3>
-                <p className="text-gray-600">{crop.category}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Seller: {crop.farmer?.name}
-                </p>
+              ))
+            ) : (
+              // Single Crop Display
+              <div className="flex items-start space-x-4 pb-4 border-b">
+                {crop.image ? (
+                  <img
+                    src={crop.image}
+                    alt={crop.name}
+                    className="w-20 h-20 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-green-100 rounded-lg flex items-center justify-center">
+                    <span className="text-3xl">🌱</span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{crop.name}</h3>
+                  <p className="text-sm text-gray-600">Farmer: {crop.farmer?.name || 'Unknown'}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <IndianRupee className="w-4 h-4 text-gray-600" />
+                    <span className="font-bold">{crop.price}</span>
+                    <span className="text-sm text-gray-600">/{crop.priceUnit}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">Available: {crop.quantity} {crop.quantityUnit}</p>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Quantity Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity ({crop.quantityUnit})
-              </label>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  min="1"
-                  max={crop.quantity}
-                  className="w-20 text-center border border-gray-300 rounded-lg px-3 py-2"
-                />
-                <button
-                  onClick={() => setQuantity(Math.min(crop.quantity, quantity + 1))}
-                  className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                >
-                  +
-                </button>
-                <span className="text-sm text-gray-500">
-                  Available: {crop.quantity} {crop.quantityUnit}
-                </span>
+            {/* Quantity Selection - only for single item checkout */}
+            {!isCartCheckout && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantity ({crop.quantityUnit})
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-semibold w-12 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(Math.min(crop.quantity, quantity + 1))}
+                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Price Breakdown */}
             <div className="space-y-2 pt-4 border-t">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Price per {crop.priceUnit}:</span>
-                <span className="font-medium">₹{crop.price}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Quantity:</span>
-                <span className="font-medium">{quantity} {crop.quantityUnit}</span>
-              </div>
+              {isCartCheckout ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Items ({cartItems.length}):</span>
+                    <span className="font-medium">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Price per {crop.priceUnit}:</span>
+                    <span className="font-medium">₹{crop.price}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Quantity:</span>
+                    <span className="font-medium">{quantity} {crop.quantityUnit}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-lg font-semibold pt-2 border-t">
                 <span>Total Price:</span>
                 <span className="text-green-600">₹{calculateTotalPrice().toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Location */}
-            <div className="pt-4 border-t">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                <span>{crop.location?.village}, {crop.location?.district}, {crop.location?.state}</span>
+            {/* Location - only for single item */}
+            {!isCartCheckout && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  <span>{crop.location?.village}, {crop.location?.district}, {crop.location?.state}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -231,20 +343,40 @@ const Checkout = () => {
 
           {!orderPlaced ? (
             <div className="space-y-6">
-              {/* Farmer Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium mb-2">Farmer Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center">
-                    <User className="w-4 h-4 mr-2 text-gray-500" />
-                    <span>{crop.farmer?.name}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                    <span>{crop.farmer?.phone}</span>
+              {/* Farmer Info - only for single item checkout */}
+              {!isCartCheckout && crop && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-medium mb-2">Farmer Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center">
+                      <User className="w-4 h-4 mr-2 text-gray-500" />
+                      <span>{crop.farmer?.name || 'Unknown'}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                      <span>{crop.farmer?.phone || 'Not available'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Multiple Farmers Info for cart checkout */}
+              {isCartCheckout && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-medium mb-2">Farmers Information</h3>
+                  <div className="space-y-2 text-sm">
+                    {cartItems.map((item, index) => (
+                      <div key={item.cropId} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 mr-2 text-gray-500" />
+                          <span>{item.farmer?.name || 'Unknown'}</span>
+                        </div>
+                        <span className="text-gray-600">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* UPI Payment */}
               <div>
@@ -271,7 +403,7 @@ const Checkout = () => {
 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={processing || quantity > crop.quantity}
+                  disabled={processing || (!isCartCheckout && quantity > (crop?.quantity || 0))}
                   className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {processing ? 'Processing...' : 'Place Order'}
@@ -287,26 +419,35 @@ const Checkout = () => {
               {/* Payment Confirmation */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
                 <Check className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Order Placed Successfully!</h3>
-                <p className="text-green-700 mb-4">
-                  Order ID: {orderId}
-                </p>
+                <h3 className="text-lg font-semibold text-green-800 mb-2">
+                  {isCartCheckout ? 'Orders Placed Successfully!' : 'Order Placed Successfully!'}
+                </h3>
+                {!isCartCheckout && (
+                  <p className="text-green-700 mb-4">
+                    Order ID: {orderId}
+                  </p>
+                )}
                 <p className="text-sm text-green-600">
-                  Please complete the payment by scanning the QR code above
+                  {isCartCheckout 
+                    ? 'Your orders have been placed. Redirecting to dashboard...'
+                    : 'Please complete the payment by scanning the QR code above'
+                  }
                 </p>
               </div>
 
-              {/* Payment Confirmation Button */}
-              <div>
-                <h3 className="font-medium mb-2">Payment Done?</h3>
-                <button
-                  onClick={handlePaymentConfirmation}
-                  disabled={processing}
-                  className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              {/* Payment Confirmation Button - only for single item checkout */}
+              {!isCartCheckout && (
+                <div>
+                  <h3 className="font-medium mb-2">Payment Done?</h3>
+                  <button
+                    onClick={handlePaymentConfirmation}
+                    disabled={processing}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {processing ? 'Confirming...' : 'Confirm Payment'}
                 </button>
               </div>
+              )}
 
               <div className="text-center">
                 <button

@@ -1,19 +1,11 @@
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
+import { Resend } from 'resend';
+import crypto from 'crypto';
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // In-memory OTP storage (in production, use Redis or database)
 const otpStore = new Map();
-
-// Create transporter with SMTP configuration
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-};
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -23,10 +15,8 @@ const generateOTP = () => {
 // Send OTP email
 const sendOTPEmail = async (email, otp) => {
   try {
-    const transporter = createTransporter();
-    
-    const mailOptions = {
-      from: `"AROVASTORE" <${process.env.EMAIL_USER}>`,
+    const data = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: email,
       subject: 'AROVASTORE - Login OTP Verification',
       html: `
@@ -62,13 +52,10 @@ const sendOTPEmail = async (email, otp) => {
           </div>
         </div>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`OTP sent to ${email}: ${otp}`);
     return true;
   } catch (error) {
-    console.error('Error sending OTP email:', error);
     throw new Error('Failed to send OTP email');
   }
 };
@@ -147,7 +134,7 @@ const updateOTPRateLimit = (email) => {
   }
 };
 
-module.exports = {
+export {
   generateAndSendOTP,
   verifyOTP,
   checkOTPRateLimit,

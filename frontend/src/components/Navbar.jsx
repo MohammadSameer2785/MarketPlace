@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import { Menu, X, User, LogOut, ShoppingBag, Tractor } from 'lucide-react';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { authUser, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -46,9 +46,9 @@ const Navbar = () => {
               Marketplace
             </Link>
             
-            {user ? (
+            {authUser ? (
               <>
-                {user.role === 'farmer' && (
+                {authUser.role === 'farmer' && (
                   <Link
                     to="/farmer-dashboard"
                     className={`text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -61,7 +61,7 @@ const Navbar = () => {
                     </div>
                   </Link>
                 )}
-                {user.role === 'consumer' && (
+                {authUser.role === 'consumer' && (
                   <Link
                     to="/consumer-dashboard"
                     className={`text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -78,12 +78,12 @@ const Navbar = () => {
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                     <User className="w-4 h-4" />
-                    <span>{user.name}</span>
+                    <span>{authUser.name}</span>
                   </button>
                   
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="px-4 py-2 text-sm text-gray-500 border-b">
-                      {user.role === 'farmer' ? 'Farmer' : 'Consumer'}
+                      {authUser.role === 'farmer' ? 'Farmer' : 'Consumer'}
                     </div>
                     <button
                       onClick={handleLogout}
@@ -147,9 +147,9 @@ const Navbar = () => {
                 Marketplace
               </Link>
               
-              {user ? (
+              {authUser ? (
                 <>
-                  {user.role === 'farmer' && (
+                  {authUser.role === 'farmer' && (
                     <Link
                       to="/farmer-dashboard"
                       className={`block px-3 py-2 rounded-md text-base font-medium ${
@@ -160,7 +160,7 @@ const Navbar = () => {
                       Farmer Dashboard
                     </Link>
                   )}
-                  {user.role === 'consumer' && (
+                  {authUser.role === 'consumer' && (
                     <Link
                       to="/consumer-dashboard"
                       className={`block px-3 py-2 rounded-md text-base font-medium ${
@@ -174,7 +174,7 @@ const Navbar = () => {
                   
                   <div className="border-t pt-2">
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      {user.name} ({user.role})
+                      {authUser.name} ({authUser.role})
                     </div>
                     <button
                       onClick={handleLogout}

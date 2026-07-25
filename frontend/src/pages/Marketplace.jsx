@@ -62,26 +62,34 @@ const Marketplace = () => {
   };
 
   const addToCart = (crop) => {
-    // This would integrate with a cart context/state management
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItem = cart.find(item => item.cropId === crop._id);
-    
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cart.push({
-        cropId: crop._id,
-        name: crop.name,
-        price: crop.price,
-        priceUnit: crop.priceUnit,
-        image: crop.image,
-        farmer: crop.farmer,
-        quantity: 1
-      });
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const existingItem = cart.find(item => item.cropId === crop._id);
+      
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cart.push({
+          cropId: crop._id,
+          name: crop.name,
+          price: crop.price,
+          priceUnit: crop.priceUnit,
+          image: crop.image,
+          farmer: crop.farmer,
+          quantity: 1
+        });
+      }
+      
+      localStorage.setItem('cart', JSON.stringify(cart));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('cart-updated'));
+      
+      alert('Added to cart!');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add to cart');
     }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert('Added to cart!');
   };
 
   return (

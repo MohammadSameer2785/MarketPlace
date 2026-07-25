@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const cropSchema = new mongoose.Schema({
   name: {
@@ -72,4 +72,4 @@ cropSchema.index({ name: 1, location: 1 });
 cropSchema.index({ demandScore: -1 });
 cropSchema.index({ saleFrequency: -1 });
 
-module.exports = mongoose.model('Crop', cropSchema);
+export default mongoose.model('Crop', cropSchema);

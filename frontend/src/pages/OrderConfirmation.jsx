@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import axios from 'axios';
 import { Check, Download, IndianRupee, MapPin, User, Calendar, Receipt } from 'lucide-react';
 
 const OrderConfirmation = () => {
   const { orderId } = useParams();
-  const { user } = useAuth();
+  const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);

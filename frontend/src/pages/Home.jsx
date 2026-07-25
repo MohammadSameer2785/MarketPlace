@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { TrendingUp, Users, ShoppingCart, Tractor, Star, MapPin, ArrowRight } from 'lucide-react';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [topCrops, setTopCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState({
@@ -64,19 +65,19 @@ const Home = () => {
               Connecting Farmers Directly with Buyers - Fresh Produce, Fair Prices, No Middlemen
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/register"
-                className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
+              <a
+                href="/register"
+                className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center cursor-pointer"
               >
                 Get Started Now
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                to="/marketplace"
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-600 transition-colors inline-flex items-center justify-center"
+              </a>
+              <a
+                href="/marketplace"
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-600 transition-colors inline-flex items-center justify-center cursor-pointer"
               >
                 Browse Marketplace
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -276,18 +277,18 @@ const Home = () => {
             AgriMarketplace is here to connect you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            <a
+              href="/register"
+              className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors inline-block text-center cursor-pointer"
             >
               Register as Farmer
-            </Link>
-            <Link
-              to="/register"
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            </a>
+            <a
+              href="/register"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-block text-center cursor-pointer"
             >
               Register as Consumer
-            </Link>
+            </a>
           </div>
         </div>
       </section>

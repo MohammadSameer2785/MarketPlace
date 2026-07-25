@@ -1,55 +1,8 @@
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const { body, validationResult } = require('express-validator');
-const Crop = require('../models/Crop');
-const Order = require('../models/Order');
-const { auth, authorizeRoles } = require('../middleware/auth');
-const router = express.Router();
+import Crop from "../models/Crop.js";
+import Order from "../models/Order.js";
+import { body, validationResult } from "express-validator";
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    // Check if the file exists
-    if (!file) {
-      return cb(null, true); // No file is okay (image is optional)
-    }
-    
-    // Check file extension
-    const allowedMimes = [
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'image/gif',
-      'image/webp'
-    ];
-    
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-    const fileExtension = path.extname(file.originalname).toLowerCase();
-    
-    if (allowedMimes.includes(file.mimetype) && allowedExtensions.includes(fileExtension)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files (jpg, jpeg, png, gif, webp) are allowed!'), false);
-    }
-  }
-});
-
-// Get all crops with filters
-router.get('/', async (req, res) => {
+export const getAllCrops = async (req, res) => {
   try {
     const { 
       state, 
@@ -89,10 +42,9 @@ router.get('/', async (req, res) => {
     console.error('Get crops error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get top 8 most demanded crops
-router.get('/top-demanded', async (req, res) => {
+export const getTopDemandedCrops = async (req, res) => {
   try {
     const { state, district, village } = req.query;
     
@@ -102,7 +54,6 @@ router.get('/top-demanded', async (req, res) => {
     if (district) matchQuery['location.district'] = new RegExp(district, 'i');
     if (village) matchQuery['location.village'] = new RegExp(village, 'i');
 
-    // Aggregate demand score based on sales frequency and price trends
     const topCrops = await Crop.aggregate([
       { $match: matchQuery },
       {
@@ -110,7 +61,7 @@ router.get('/top-demanded', async (req, res) => {
           demandScore: {
             $add: [
               { $multiply: ['$saleFrequency', 10] },
-              { $divide: [1000, { $add: ['$price', 1] }] }, // Lower price = higher demand
+              { $divide: [1000, { $add: ['$price', 1] }] },
               { $multiply: [{ $size: { $ifNull: ['$orders', []] } }, 5] }
             ]
           }
@@ -135,17 +86,9 @@ router.get('/top-demanded', async (req, res) => {
     console.error('Get top demanded crops error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Add new crop (Farmer only)
-router.post('/', auth, authorizeRoles('farmer'), upload.single('image'), [
-  body('name').notEmpty().withMessage('Crop name is required'),
-  body('price').isNumeric().withMessage('Price must be a number'),
-  body('quantity').isNumeric().withMessage('Quantity must be a number'),
-  body('priceUnit').isIn(['kg', 'quintal']).withMessage('Invalid price unit'),
-  body('quantityUnit').isIn(['kg', 'quintal']).withMessage('Invalid quantity unit'),
-  body('category').isIn(['vegetables', 'fruits', 'grains', 'pulses', 'spices', 'other']).withMessage('Invalid category')
-], async (req, res) => {
+export const addCrop = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -154,8 +97,7 @@ router.post('/', auth, authorizeRoles('farmer'), upload.single('image'), [
 
     const { name, price, quantity, priceUnit, quantityUnit, description, category } = req.body;
     
-    // Handle location data from FormData
-    let location = req.user.address; // Default to user's address
+    let location = req.user.address;
     if (req.body['location.state'] || req.body['location.district'] || req.body['location.village']) {
       location = {
         state: req.body['location.state'] || req.user.address?.state || '',
@@ -175,7 +117,7 @@ router.post('/', auth, authorizeRoles('farmer'), upload.single('image'), [
       description,
       category,
       location,
-      image: req.file ? `/uploads/${req.file.filename}` : ''
+      image: req.file ? req.file.path : ''
     });
 
     await crop.save();
@@ -189,10 +131,9 @@ router.post('/', auth, authorizeRoles('farmer'), upload.single('image'), [
     }
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Update crop (Farmer only)
-router.put('/:id', auth, authorizeRoles('farmer'), upload.single('image'), async (req, res) => {
+export const updateCrop = async (req, res) => {
   try {
     const crop = await Crop.findById(req.params.id);
     
@@ -204,7 +145,6 @@ router.put('/:id', auth, authorizeRoles('farmer'), upload.single('image'), async
       return res.status(403).json({ message: 'Not authorized to update this crop' });
     }
 
-    // Update basic fields
     const updates = {};
     const allowedFields = ['name', 'price', 'quantity', 'priceUnit', 'quantityUnit', 'description', 'category'];
     
@@ -214,7 +154,6 @@ router.put('/:id', auth, authorizeRoles('farmer'), upload.single('image'), async
       }
     });
 
-    // Handle location data from FormData
     if (req.body['location.state'] || req.body['location.district'] || req.body['location.village']) {
       updates.location = {
         state: req.body['location.state'] || crop.location?.state || '',
@@ -225,7 +164,7 @@ router.put('/:id', auth, authorizeRoles('farmer'), upload.single('image'), async
     }
 
     if (req.file) {
-      updates.image = `/uploads/${req.file.filename}`;
+      updates.image = req.file.path;
     }
 
     Object.assign(crop, updates);
@@ -237,10 +176,9 @@ router.put('/:id', auth, authorizeRoles('farmer'), upload.single('image'), async
     console.error('Update crop error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Delete crop (Farmer only)
-router.delete('/:id', auth, authorizeRoles('farmer'), async (req, res) => {
+export const deleteCrop = async (req, res) => {
   try {
     const crop = await Crop.findById(req.params.id);
     
@@ -260,10 +198,9 @@ router.delete('/:id', auth, authorizeRoles('farmer'), async (req, res) => {
     console.error('Delete crop error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// Get farmer's crops
-router.get('/my-crops', auth, authorizeRoles('farmer'), async (req, res) => {
+export const getMyCrops = async (req, res) => {
   try {
     const crops = await Crop.find({ farmer: req.user._id, isActive: true })
       .populate('farmer', 'name phone address')
@@ -274,6 +211,4 @@ router.get('/my-crops', auth, authorizeRoles('farmer'), async (req, res) => {
     console.error('Get farmer crops error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
-
-module.exports = router;
+};

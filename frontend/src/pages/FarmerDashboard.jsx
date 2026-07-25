@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../store/useAuthStore.js';
 import axios from 'axios';
 import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee } from 'lucide-react';
 
 const FarmerDashboard = () => {
-  const { user } = useAuth();
+  const { authUser } = useAuthStore();
   const [crops, setCrops] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCrop, setEditingCrop] = useState(null);
@@ -16,8 +16,6 @@ const FarmerDashboard = () => {
     activeCrops: 0
   });
 
-  console.log('FarmerDashboard - User:', user);
-
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -27,9 +25,9 @@ const FarmerDashboard = () => {
     description: '',
     category: 'other',
     location: {
-      state: user?.address?.state || '',
-      district: user?.address?.district || '',
-      village: user?.address?.village || ''
+      state: authUser?.address?.state || '',
+      district: authUser?.address?.district || '',
+      village: authUser?.address?.village || ''
     },
     image: null
   });
@@ -41,9 +39,7 @@ const FarmerDashboard = () => {
 
   const fetchCrops = async () => {
     try {
-      console.log('Fetching crops...');
       const response = await axios.get('/api/crops/my-crops');
-      console.log('Crops response:', response.data);
       setCrops(response.data);
     } catch (error) {
       console.error('Failed to fetch crops:', error.response?.data || error.message);
@@ -98,12 +94,6 @@ const FarmerDashboard = () => {
           formDataToSend.append(key, formData[key]);
         }
       });
-
-      // Debug: Log FormData contents
-      console.log('Submitting crop data:');
-      for (let [key, value] of formDataToSend.entries()) {
-        console.log(`${key}:`, value);
-      }
 
       if (editingCrop) {
         await axios.put(`/api/crops/${editingCrop._id}`, formDataToSend, {
@@ -173,9 +163,9 @@ const FarmerDashboard = () => {
       description: '',
       category: 'other',
       location: {
-        state: user?.address?.state || '',
-        district: user?.address?.district || '',
-        village: user?.address?.village || ''
+        state: authUser?.address?.state || '',
+        district: authUser?.address?.district || '',
+        village: authUser?.address?.village || ''
       },
       image: null
     });
@@ -219,7 +209,7 @@ const FarmerDashboard = () => {
     );
   }
 
-  if (!user) {
+  if (!authUser) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
@@ -235,7 +225,7 @@ const FarmerDashboard = () => {
     );
   }
 
-  if (user.role !== 'farmer') {
+  if (authUser.role !== 'farmer') {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
