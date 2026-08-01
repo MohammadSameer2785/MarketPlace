@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore.js';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee } from 'lucide-react';
+import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee, LogOut } from 'lucide-react';
 
 const FarmerDashboard = () => {
-  const { authUser } = useAuthStore();
+  const { authUser, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [crops, setCrops] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCrop, setEditingCrop] = useState(null);
@@ -15,6 +17,11 @@ const FarmerDashboard = () => {
     totalOrders: 0,
     activeCrops: 0
   });
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -244,9 +251,18 @@ const FarmerDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Farmer Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage your crops and track sales</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Farmer Dashboard</h1>
+          <p className="text-gray-600 mt-2">Manage your crops and track sales</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
       </div>
 
       {/* Stats Cards */}

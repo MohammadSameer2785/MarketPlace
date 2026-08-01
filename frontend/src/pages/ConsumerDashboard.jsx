@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
 import axios from 'axios';
-import { ShoppingCart, Package, TrendingUp, Clock, CheckCircle, XCircle, Download, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Package, TrendingUp, Clock, CheckCircle, XCircle, Download, ExternalLink, LogOut } from 'lucide-react';
 
 const ConsumerDashboard = () => {
-  const { authUser } = useAuthStore();
+  const { authUser, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [stats, setStats] = useState({
@@ -15,6 +16,11 @@ const ConsumerDashboard = () => {
     completedOrders: 0
   });
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -153,9 +159,18 @@ const ConsumerDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Consumer Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage your orders and track purchases</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Consumer Dashboard</h1>
+          <p className="text-gray-600 mt-2">Manage your orders and track purchases</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
       </div>
 
       {/* Stats Cards */}

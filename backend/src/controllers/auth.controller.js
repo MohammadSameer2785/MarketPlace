@@ -222,7 +222,64 @@ export const checkAuth = async (req, res) => {
       upiQrCode: user.upiQrCode
     });
   } catch (error) {
-    console.error('Check auth error:', error);
     res.status(200).json(null);
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'No account found with this email address' });
+    }
+
+    // Send OTP to email
+    const result = await generateAndSendOTP(email);
+    
+    if (result.success) {
+      res.json({ message: 'OTP sent to your email address' });
+    } else {
+      res.status(500).json({ message: result.message });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, otp, newPassword } = req.body;
+
+    // Verify OTP
+    const otpResult = verifyOTP(email, otp);
+    if (!otpResult.valid) {
+      return res.status(400).json({ message: otpResult.message });
+    }
+
+    // Find user and update password
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'No account found with this email address' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 };

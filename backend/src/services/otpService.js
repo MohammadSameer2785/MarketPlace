@@ -1,8 +1,16 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: process.env.EMAIL_PORT || 587,
+  secure: process.env.EMAIL_SECURE === 'true',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
 
 // In-memory OTP storage (in production, use Redis or database)
 const otpStore = new Map();
@@ -13,12 +21,12 @@ const generateOTP = () => {
 };
 
 // Send OTP email
-const sendOTPEmail = async (email, otp) => {
+const sendOTPEmail = async (email, otp, subject = 'AROVASTORE - Login OTP Verification') => {
   try {
-    const data = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: email,
-      subject: 'AROVASTORE - Login OTP Verification',
+      subject: subject,
       html: `
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -28,7 +36,7 @@ const sendOTPEmail = async (email, otp) => {
           
           <div style="background: #f0fdf4; border-radius: 12px; padding: 30px; text-align: center; border: 2px solid #16a34a;">
             <h2 style="color: #16a34a; margin: 0 0 10px 0;">Email Verification</h2>
-            <p style="color: #374151; margin: 0 0 20px 0;">Your One-Time Password (OTP) for login is:</p>
+            <p style="color: #374151; margin: 0 0 20px 0;">Your One-Time Password (OTP) is:</p>
             
             <div style="background: white; border: 2px solid #16a34a; border-radius: 8px; padding: 20px; margin: 20px 0; display: inline-block;">
               <span style="font-size: 36px; font-weight: bold; color: #16a34a; letter-spacing: 8px;">${otp}</span>
@@ -52,8 +60,9 @@ const sendOTPEmail = async (email, otp) => {
           </div>
         </div>
       `
-    });
+    };
 
+    await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
     throw new Error('Failed to send OTP email');
