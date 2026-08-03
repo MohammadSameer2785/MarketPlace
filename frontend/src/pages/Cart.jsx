@@ -13,7 +13,7 @@ const Cart = () => {
   const loadCart = () => {
     try {
       const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCart(cartData);
+      setCart(Array.isArray(cartData) ? cartData : []);
     } catch (error) {
       console.error('Error loading cart:', error);
       setCart([]);

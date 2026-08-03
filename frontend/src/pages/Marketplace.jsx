@@ -33,9 +33,10 @@ const Marketplace = () => {
       });
 
       const response = await axios.get(`/api/crops?${params}`);
-      setCrops(response.data);
+      setCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch crops:', error);
+      setCrops([]);
     } finally {
       setLoading(false);
     }

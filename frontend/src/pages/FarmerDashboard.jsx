@@ -47,9 +47,10 @@ const FarmerDashboard = () => {
   const fetchCrops = async () => {
     try {
       const response = await axios.get('/api/crops/my-crops');
-      setCrops(response.data);
+      setCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch crops:', error.response?.data || error.message);
+      setCrops([]);
     } finally {
       setLoading(false);
     }
