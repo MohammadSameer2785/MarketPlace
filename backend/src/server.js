@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.route.js";
 import cropRoutes from "./routes/crop.route.js";
 import userRoutes from "./routes/user.route.js";
 import orderRoutes from "./routes/order.route.js";
+import aiRoutes from "./routes/ai.route.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/crops", cropRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Default UPI Configuration
 app.get('/api/upi-config', (req, res) => {

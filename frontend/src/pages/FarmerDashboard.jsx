@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore.js';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee, LogOut } from 'lucide-react';
+import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee, LogOut, Sparkles } from 'lucide-react';
 
 const FarmerDashboard = () => {
   const { authUser, logout } = useAuthStore();
@@ -256,13 +256,22 @@ const FarmerDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Farmer Dashboard</h1>
           <p className="text-gray-600 mt-2">Manage your crops and track sales</p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-        >
-          <LogOut className="w-5 h-5" />
-          Logout
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/ai-assistant')}
+            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md"
+          >
+            <Sparkles className="w-5 h-5" />
+            Ask Bujji
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
