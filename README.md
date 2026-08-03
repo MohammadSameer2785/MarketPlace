@@ -13,6 +13,7 @@ A comprehensive agricultural marketplace platform that connects farmers directly
 - **🧾 Digital Receipts**: Automated receipt generation with all transaction details
 - **🔐 Secure Authentication**: JWT-based auth with forgot password functionality
 - **📧 Email Verification**: OTP-based email verification using Nodemailer
+- **🤖 Bujji AI Assistant**: AI-powered agricultural expert for farming queries and fertilizer recommendations
 
 ### User Roles
 - **Farmers**: Can list crops, manage inventory, and track orders
@@ -610,6 +611,10 @@ agri-marketplace/
 - `POST /api/users/upload-upi-qr` - Upload UPI QR code for payments
 - `GET /api/users/farmers` - Get all registered farmers
 
+### AI Assistant (Bujji)
+- `POST /api/ai/chat` - Chat with Bujji AI assistant (Protected)
+- `POST /api/ai/fertilizer` - Get fertilizer recommendations (Protected)
+
 ## 💳 Payment Flow
 
 1. **Order Placement**: Consumer places order and gets UPI QR code
@@ -706,6 +711,17 @@ For testing purposes, you can use these demo accounts:
 - Session persistence across page refreshes
 - Protected routes for dashboards
 
+### Bujji AI Assistant
+- AI-powered agricultural expert using Mistral AI
+- Context-aware responses based on user role (farmer/consumer)
+- Fertilizer recommendations for specific crops and soil types
+- Crop cultivation advice and best practices
+- Pest and disease management guidance
+- Irrigation techniques and water management
+- Organic farming and sustainable agriculture tips
+- Quick question suggestions for common queries
+- Modern chat interface with real-time responses
+
 ## 🚀 Deployment
 
 For detailed deployment instructions, refer to the [DEPLOYMENT.md](DEPLOYMENT.md) file which includes:
@@ -720,6 +736,7 @@ For detailed deployment instructions, refer to the [DEPLOYMENT.md](DEPLOYMENT.md
 - MongoDB Atlas setup
 - Cloudinary configuration
 - Nodemailer email setup
+- Mistral AI configuration for Bujji assistant
 - Render web service configuration
 - Environment variables setup
 

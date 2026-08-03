@@ -7,6 +7,7 @@
 - MongoDB Atlas account (free tier available)
 - Cloudinary account (free tier available)
 - Gmail account with app password (for Nodemailer)
+- Mistral AI account (for Bujji AI assistant)
 
 ### Step 1: Set up MongoDB Atlas
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
@@ -32,9 +33,16 @@
 5. Generate a new app password
 6. Copy the 16-character password (use this in EMAIL_PASSWORD)
 
-### Step 4: Deploy Backend on Render
+### Step 4: Set up Mistral AI (for Bujji AI Assistant)
+1. Go to [Mistral AI Console](https://console.mistral.ai/)
+2. Create a free account
+3. Navigate to API Keys section
+4. Generate a new API key
+5. Copy the API key (use this in MISTRAL_API_KEY)
 
-#### 4.1 Create Render Web Service
+### Step 5: Deploy Backend on Render
+
+#### 5.1 Create Render Web Service
 1. Go to [Render Dashboard](https://dashboard.render.com/)
 2. Click "New" → "Web Service"
 3. Connect your GitHub repository
@@ -45,7 +53,7 @@
    - **Start Command**: `node src/server.js`
    - **Runtime**: Node (latest)
 
-#### 4.2 Add Environment Variables
+#### 5.2 Add Environment Variables
 Add these environment variables in Render:
 
 ```
@@ -60,16 +68,17 @@ EMAIL_SECURE=false
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
 EMAIL_FROM=your-email@gmail.com
+MISTRAL_API_KEY=your-mistral-api-key
 NODE_ENV=production
 PORT=5002
 ```
 
-#### 4.3 Deploy
+#### 5.3 Deploy
 1. Click "Create Web Service"
 2. Wait for deployment to complete
 3. Copy your Render backend URL (e.g., `https://your-backend.onrender.com`)
 
-### Step 5: Update Frontend Configuration
+### Step 6: Update Frontend Configuration
 
 Update `frontend/src/lib/axios.js` to use production URL:
 
@@ -157,9 +166,16 @@ app.use(cors({
 - Ensure file size limits are respected (5MB max)
 
 **Email OTP not working:**
-- Verify Resend API key
-- Check Resend dashboard for email logs
-- Ensure email is verified in Resend
+- Verify Gmail app password is correct
+- Check 2-factor authentication is enabled
+- Ensure EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE are correct
+- Test email sending locally first
+
+**AI Assistant not working:**
+- Verify Mistral AI API key is set
+- Check Mistral AI console for API usage
+- Ensure the API key has sufficient credits
+- Check backend logs for Mistral API errors
 
 ## Maintenance
 
@@ -181,6 +197,6 @@ app.use(cors({
 - **Vercel**: Free hosting with unlimited bandwidth
 - **MongoDB Atlas**: 512MB storage (free tier)
 - **Cloudinary**: 25GB storage/month (free tier)
-- **Resend**: 3,000 emails/month (free tier)
+- **Mistral AI**: Free tier with limited API calls
 
 Total monthly cost: $0 (all free tiers)
