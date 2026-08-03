@@ -62,8 +62,8 @@ const FarmerDashboard = () => {
         axios.get('/api/orders/farmer-orders')
       ]);
 
-      const crops = cropsResponse.data;
-      const orders = ordersResponse.data;
+      const crops = Array.isArray(cropsResponse.data) ? cropsResponse.data : [];
+      const orders = Array.isArray(ordersResponse.data) ? ordersResponse.data : [];
 
       setStats({
         totalCrops: crops.length,

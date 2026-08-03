@@ -44,9 +44,10 @@ const Home = () => {
       if (selectedLocation.village) params.append('village', selectedLocation.village);
       
       const response = await axios.get(`/api/crops/top-demanded?${params}`);
-      setTopCrops(response.data);
+      setTopCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to search top crops:', error);
+      setTopCrops([]);
     } finally {
       setLoading(false);
     }

@@ -52,9 +52,10 @@ const ConsumerDashboard = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get('/api/orders/my-orders');
-      setOrders(response.data);
+      setOrders(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -63,7 +64,7 @@ const ConsumerDashboard = () => {
   const fetchStats = async () => {
     try {
       const response = await axios.get('/api/orders/my-orders');
-      const orders = response.data;
+      const orders = Array.isArray(response.data) ? response.data : [];
       
       setStats({
         totalOrders: orders.length,
