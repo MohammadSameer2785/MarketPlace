@@ -19,7 +19,7 @@ const __dirname = path.resolve();
 // Middleware
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  origin: process.env.CLIENT_URL || ["http://localhost:5173", "https://arovastore.vercel.app"],
   credentials: true
 }));
 app.use(express.json({ limit: "5mb" }));
