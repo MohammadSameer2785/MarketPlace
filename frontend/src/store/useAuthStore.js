@@ -23,11 +23,12 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/api/auth/register", data);
-      set({ authUser: res.data.user });
+      set({ authUser: res.data.user || res.data });
       toast.success("Account created successfully!");
     } catch (error) {
       // Don't set authUser on error - this prevents registration with existing email
-      toast.error(error.response?.data?.message || "Error creating account");
+      const errorMsg = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || "Error creating account";
+      toast.error(errorMsg);
       throw error; // Re-throw error so calling code can handle it
     } finally {
       set({ isSigningUp: false });
@@ -38,7 +39,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/api/auth/login", data);
-      set({ authUser: res.data.user });
+      set({ authUser: res.data.user || res.data });
       toast.success("Logged in successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Error logging in");

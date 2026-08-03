@@ -342,11 +342,11 @@ const Register = () => {
           </div>
 
           {/* Errors */}
-          {errors.length > 0 && (
+          {Array.isArray(errors) && errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <ul className="text-sm text-red-600 space-y-1">
                 {errors.map((error, index) => (
-                  <li key={index}>{error.msg}</li>
+                  <li key={index}>{error.msg || error}</li>
                 ))}
               </ul>
             </div>
