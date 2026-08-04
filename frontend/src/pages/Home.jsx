@@ -180,7 +180,7 @@ const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {topCrops.map((crop, index) => (
+              {Array.isArray(topCrops) && topCrops.map((crop, index) => (
                 <div key={crop._id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow crop-card">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center">

@@ -571,7 +571,7 @@ const FarmerDashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {crops.map((crop) => (
+              {Array.isArray(crops) && crops.map((crop) => (
                 <tr key={crop._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">

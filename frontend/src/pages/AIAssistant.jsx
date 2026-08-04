@@ -168,7 +168,7 @@ const AIAssistant = () => {
           <div className="mb-4">
             <p className="text-sm text-gray-600 mb-3 font-medium">Quick Questions:</p>
             <div className="flex flex-wrap gap-2">
-              {quickQuestions.map((question, index) => (
+              {Array.isArray(quickQuestions) && quickQuestions.map((question, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickQuestion(question)}

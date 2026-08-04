@@ -37,13 +37,15 @@ const Cart = () => {
     if (newQuantity < 1) return;
     
     try {
-      const updatedCart = cart.map(item => 
+      const cartArray = Array.isArray(cart) ? cart : [];
+      const updatedCart = cartArray.map(item => 
         item.cropId === cropId ? { ...item, quantity: newQuantity } : item
       );
       setCart(updatedCart);
       localStorage.setItem('cart', JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      console.error('Error updating cart:', error);
     }
   };
 
@@ -93,7 +95,7 @@ const Cart = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cart.map((item) => (
+            {Array.isArray(cart) && cart.map((item) => (
               <div key={item.cropId} className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-start gap-4">
                   {item.image ? (

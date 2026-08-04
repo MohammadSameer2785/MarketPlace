@@ -218,7 +218,7 @@ const Checkout = () => {
           <div className="space-y-4">
             {isCartCheckout ? (
               // Cart Items Display
-              cartItems.map((item) => (
+              Array.isArray(cartItems) && cartItems.map((item) => (
                 <div key={item.cropId} className="flex items-start space-x-4 pb-4 border-b">
                   {item.image ? (
                     <img
@@ -367,7 +367,7 @@ const Checkout = () => {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-medium mb-2">Farmers Information</h3>
                   <div className="space-y-2 text-sm">
-                    {cartItems.map((item, index) => (
+                    {Array.isArray(cartItems) && cartItems.map((item, index) => (
                       <div key={item.cropId} className="flex items-center justify-between py-2 border-b last:border-0">
                         <div className="flex items-center">
                           <User className="w-4 h-4 mr-2 text-gray-500" />

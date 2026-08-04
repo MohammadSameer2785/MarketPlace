@@ -232,7 +232,7 @@ const Marketplace = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {crops.map((crop) => (
+          {Array.isArray(crops) && crops.map((crop) => (
             <div key={crop._id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow crop-card">
               {/* Crop Image */}
               <div className="h-48 bg-gray-200 relative">
