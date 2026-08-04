@@ -37,15 +37,17 @@ const Checkout = () => {
   const loadCartItems = () => {
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      if (cart.length === 0) {
+      const cartArray = Array.isArray(cart) ? cart : [];
+      if (cartArray.length === 0) {
         navigate('/marketplace');
         return;
       }
-      setCartItems(cart);
+      setCartItems(cartArray);
       setIsCartCheckout(true);
       setLoading(false);
     } catch (error) {
       console.error('Error loading cart:', error);
+      setCartItems([]);
       navigate('/marketplace');
     }
   };
