@@ -37,7 +37,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/request-otp', { email: formData.email });
+      const response = await axios.post('/api/auth/forgot-password', { email: formData.email });
       if (response.data.message) {
         setOtpSent(true);
         setResendTimer(60); // 60 seconds cooldown
