@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Clock } from 'lucide-react';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import toast from 'react-hot-toast';
 
 const ForgotPassword = () => {
@@ -16,7 +16,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/forgot-password', { email });
+      const response = await axiosInstance.post('/api/auth/forgot-password', { email });
       toast.success(response.data.message);
       setOtpSent(true);
       setResendTimer(60);

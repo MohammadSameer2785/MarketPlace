@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
 import { Mail, Lock, Eye, EyeOff, Shield, Clock } from 'lucide-react';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 
 const Login = () => {
   const { login } = useAuthStore();
@@ -37,7 +37,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/forgot-password', { email: formData.email });
+      const response = await axiosInstance.post('/api/auth/forgot-password', { email: formData.email });
       if (response.data.message) {
         setOtpSent(true);
         setResendTimer(60); // 60 seconds cooldown

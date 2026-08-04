@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import toast from 'react-hot-toast';
 
 const ResetPassword = () => {
@@ -41,15 +41,13 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/reset-password', {
+      const response = await axiosInstance.post('/api/auth/reset-password', {
         email: formData.email,
         otp: formData.otp,
         newPassword: formData.newPassword
       });
-      toast.success(response.data.message);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      toast.success('Password reset successfully!');
+      navigate('/login');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reset password');
     } finally {
