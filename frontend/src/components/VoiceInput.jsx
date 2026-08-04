@@ -25,8 +25,9 @@ const VoiceInput = ({
       recognitionRef.current.lang = lang;
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
+        const results = Array.from(event.results || []);
+        const transcript = results
+          .map(result => result[0]?.transcript || '')
           .join('');
         
         onChange(transcript);

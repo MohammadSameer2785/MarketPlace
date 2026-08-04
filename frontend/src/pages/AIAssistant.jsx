@@ -120,7 +120,7 @@ const AIAssistant = () => {
       <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          {messages.map((message, index) => (
+          {Array.isArray(messages) && messages.map((message, index) => (
             <div
               key={index}
               className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}

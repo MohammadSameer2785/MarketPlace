@@ -11,7 +11,7 @@ const LanguageSwitcher = ({ className = '' }) => {
     { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
     { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
     { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' }
-  ].filter(lang => availableLanguages.includes(lang.code));
+  ].filter(lang => Array.isArray(availableLanguages) && availableLanguages.includes(lang.code));
 
   const currentLanguage = languages.find(lang => lang.code === currentLang) || languages[0];
 
