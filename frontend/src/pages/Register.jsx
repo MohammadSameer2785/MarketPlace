@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
 import VoiceInput from '../components/VoiceInput';
+import VoiceButton from '../components/VoiceButton';
 import { User, Mail, Phone, Lock, MapPin, Tractor, ShoppingBag } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -175,16 +176,15 @@ const Register = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="input-field pl-10 pr-24"
+                  className="input-field pl-10 pr-12"
                   placeholder="John Doe"
                 />
-                <VoiceInput
-                  value={formData.name}
-                  onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
-                  placeholder="Speak your name..."
-                  lang="en"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <VoiceButton
+                    onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
+                    lang="en"
+                  />
+                </div>
               </div>
             </div>
 
@@ -224,16 +224,15 @@ const Register = () => {
                   required
                   value={formData.phone}
                   onChange={handleChange}
-                  className="input-field pl-10 pr-24"
+                  className="input-field pl-10 pr-12"
                   placeholder="+91 98765 43210"
                 />
-                <VoiceInput
-                  value={formData.phone}
-                  onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
-                  placeholder="Speak your phone number..."
-                  lang="en"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <VoiceButton
+                    onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                    lang="en"
+                  />
+                </div>
               </div>
             </div>
 
@@ -323,19 +322,18 @@ const Register = () => {
                     type="text"
                     value={formData.address.state}
                     onChange={handleChange}
-                    className="input-field pr-24"
+                    className="input-field pr-12"
                     placeholder="State"
                   />
-                  <VoiceInput
-                    value={formData.address.state}
-                    onChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      address: { ...prev.address, state: value }
-                    }))}
-                    placeholder="Speak state..."
-                    lang="en"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <VoiceButton
+                      onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        address: { ...prev.address, state: value }
+                      }))}
+                      lang="en"
+                    />
+                  </div>
                 </div>
                 <div className="relative">
                   <input
@@ -343,19 +341,18 @@ const Register = () => {
                     type="text"
                     value={formData.address.district}
                     onChange={handleChange}
-                    className="input-field pr-24"
+                    className="input-field pr-12"
                     placeholder="District"
                   />
-                  <VoiceInput
-                    value={formData.address.district}
-                    onChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      address: { ...prev.address, district: value }
-                    }))}
-                    placeholder="Speak district..."
-                    lang="en"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <VoiceButton
+                      onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        address: { ...prev.address, district: value }
+                      }))}
+                      lang="en"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-2">
@@ -365,19 +362,18 @@ const Register = () => {
                     type="text"
                     value={formData.address.village}
                     onChange={handleChange}
-                    className="input-field pr-24"
+                    className="input-field pr-12"
                     placeholder="Village"
                   />
-                  <VoiceInput
-                    value={formData.address.village}
-                    onChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      address: { ...prev.address, village: value }
-                    }))}
-                    placeholder="Speak village..."
-                    lang="en"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <VoiceButton
+                      onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        address: { ...prev.address, village: value }
+                      }))}
+                      lang="en"
+                    />
+                  </div>
                 </div>
                 <div className="relative">
                   <input
@@ -385,19 +381,18 @@ const Register = () => {
                     type="text"
                     value={formData.address.pincode}
                     onChange={handleChange}
-                    className="input-field pr-24"
+                    className="input-field pr-12"
                     placeholder="Pincode"
                   />
-                  <VoiceInput
-                    value={formData.address.pincode}
-                    onChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      address: { ...prev.address, pincode: value }
-                    }))}
-                    placeholder="Speak pincode..."
-                    lang="en"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <VoiceButton
+                      onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        address: { ...prev.address, pincode: value }
+                      }))}
+                      lang="en"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
