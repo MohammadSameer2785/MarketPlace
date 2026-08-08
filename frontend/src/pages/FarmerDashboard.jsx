@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore.js';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { Plus, Trash2, Edit, Package, TrendingUp, Users, IndianRupee, LogOut, Sparkles } from 'lucide-react';
 
 const FarmerDashboard = () => {
@@ -46,7 +46,7 @@ const FarmerDashboard = () => {
 
   const fetchCrops = async () => {
     try {
-      const response = await axios.get('/api/crops/my-crops');
+      const response = await axiosInstance.get('/api/crops/my-crops');
       setCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch crops:', error.response?.data || error.message);
@@ -59,8 +59,8 @@ const FarmerDashboard = () => {
   const fetchStats = async () => {
     try {
       const [cropsResponse, ordersResponse] = await Promise.all([
-        axios.get('/api/crops/my-crops'),
-        axios.get('/api/orders/farmer-orders')
+        axiosInstance.get('/api/crops/my-crops'),
+        axiosInstance.get('/api/orders/farmer-orders')
       ]);
 
       const crops = Array.isArray(cropsResponse.data) ? cropsResponse.data : [];
@@ -104,13 +104,13 @@ const FarmerDashboard = () => {
       });
 
       if (editingCrop) {
-        await axios.put(`/api/crops/${editingCrop._id}`, formDataToSend, {
+        await axiosInstance.put(`/api/crops/${editingCrop._id}`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
       } else {
-        await axios.post('/api/crops', formDataToSend, {
+        await axiosInstance.post('/api/crops', formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -136,11 +136,11 @@ const FarmerDashboard = () => {
   const handleDelete = async (cropId) => {
     if (window.confirm('Are you sure you want to delete this crop?')) {
       try {
-        await axios.delete(`/api/crops/${cropId}`);
+        await axiosInstance.delete(`/api/crops/${cropId}`);
         fetchCrops();
         fetchStats();
       } catch (error) {
-        console.error('Failed to delete crop:', error);
+        console.error('Failed to delete crop:', error.response?.data || error.message);
       }
     }
   };
