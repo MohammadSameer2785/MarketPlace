@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { MessageSquare, Send, X, Sparkles, Leaf, User, Bot } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -36,7 +36,7 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/ai/chat', {
+      const response = await axiosInstance.post('/api/ai/chat', {
         message: userMessage
       });
 
