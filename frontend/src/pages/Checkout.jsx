@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { ShoppingCart, IndianRupee, MapPin, User, Phone, QrCode, Check } from 'lucide-react';
 
 const Checkout = () => {
@@ -54,7 +54,7 @@ const Checkout = () => {
 
   const fetchCropDetails = async () => {
     try {
-      const response = await axios.get(`/api/crops`);
+      const response = await axiosInstance.get(`/api/crops`);
       const cropData = response.data.find(c => c._id === cropId);
       if (cropData) {
         setCrop(cropData);
@@ -71,7 +71,7 @@ const Checkout = () => {
 
   const fetchUpiConfig = async () => {
     try {
-      const response = await axios.get('/api/upi-config');
+      const response = await axiosInstance.get('/api/upi-config');
       setUpiConfig(response.data);
     } catch (error) {
       // Set default UPI ID if fetch fails
@@ -101,17 +101,16 @@ const Checkout = () => {
   const handlePlaceOrder = async () => {
     setProcessing(true);
     try {
+      // Ensure UPI ID is set
+      const upiId = upiConfig.upiId || 'shivanakkanagoni17@okaxis';
+      
       if (isCartCheckout) {
         // Place orders for all cart items
         for (const item of cartItems) {
-          if (!upiConfig.upiId) {
-            throw new Error('UPI ID is not configured');
-          }
-
-          await axios.post('/api/orders', {
+          await axiosInstance.post('/api/orders', {
             cropId: item.cropId,
             quantity: Number(item.quantity),
-            upiId: upiConfig.upiId
+            upiId: upiId
           });
         }
         // Clear cart after successful orders
@@ -129,14 +128,10 @@ const Checkout = () => {
           return;
         }
 
-        if (!upiConfig.upiId) {
-          throw new Error('UPI ID is not configured');
-        }
-
-        const response = await axios.post('/api/orders', {
+        const response = await axiosInstance.post('/api/orders', {
           cropId: crop._id,
           quantity: Number(quantity),
-          upiId: upiConfig.upiId
+          upiId: upiId
         });
 
         setOrderId(response.data._id);
@@ -165,7 +160,7 @@ const Checkout = () => {
   const handlePaymentConfirmation = async () => {
     setProcessing(true);
     try {
-      await axios.put(`/api/orders/${orderId}/payment`, {
+      await axiosInstance.put(`/api/orders/${orderId}/payment`, {
         paymentId: `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       });
 
