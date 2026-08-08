@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
+import { useAuthStore } from '../store/useAuthStore.js';
 import { Search, Filter, MapPin, IndianRupee, Package, ShoppingCart } from 'lucide-react';
 
 const Marketplace = () => {
+  const { authUser } = useAuthStore();
+  const navigate = useNavigate();
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -63,6 +66,11 @@ const Marketplace = () => {
   };
 
   const addToCart = (crop) => {
+    if (!authUser) {
+      navigate('/login');
+      return;
+    }
+
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       const existingItem = cart.find(item => item.cropId === crop._id);
@@ -285,12 +293,18 @@ const Marketplace = () => {
 
                 {/* Actions */}
                 <div className="flex space-x-2">
-                  <Link
-                    to={`/checkout/${crop._id}`}
+                  <button
+                    onClick={() => {
+                      if (!authUser) {
+                        navigate('/login');
+                      } else {
+                        navigate(`/checkout/${crop._id}`);
+                      }
+                    }}
                     className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center text-sm font-medium"
                   >
                     Buy Now
-                  </Link>
+                  </button>
                   <button
                     onClick={() => addToCart(crop)}
                     className="flex-1 border border-green-600 text-green-600 py-2 px-4 rounded-lg hover:bg-green-50 transition-colors text-sm font-medium flex items-center justify-center"

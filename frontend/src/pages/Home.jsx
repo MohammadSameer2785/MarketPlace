@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
+import { useAuthStore } from '../store/useAuthStore.js';
 import { TrendingUp, Users, ShoppingCart, Tractor, Star, MapPin, ArrowRight } from 'lucide-react';
 
 const Home = () => {
+  const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const [topCrops, setTopCrops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -224,12 +226,18 @@ const Home = () => {
                     </div>
                   </div>
 
-                  <Link
-                    to={`/checkout/${crop._id}`}
+                  <button
+                    onClick={() => {
+                      if (!authUser) {
+                        navigate('/login');
+                      } else {
+                        navigate(`/checkout/${crop._id}`);
+                      }
+                    }}
                     className="w-full mt-4 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors text-center block"
                   >
                     Order Now
-                  </Link>
+                  </button>
                 </div>
               ))}
             </div>
