@@ -1,64 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore.js';
-import { Mail, Lock, Eye, EyeOff, Shield, Clock } from 'lucide-react';
-import { axiosInstance } from '../lib/axios';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const { login } = useAuthStore();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    otp: ''
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [useOTP, setUseOTP] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
 
   const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
-  };
-
-  const requestOTP = async () => {
-    if (!formData.email) {
-      setError('Please enter your email address first');
-      return;
-    }
-
-    setOtpLoading(true);
-    setError('');
-
-    try {
-      const response = await axiosInstance.post('/api/auth/forgot-password', { email: formData.email });
-      if (response.data.message) {
-        setOtpSent(true);
-        setResendTimer(60); // 60 seconds cooldown
-        startResendTimer();
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to send OTP');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  const startResendTimer = () => {
-    let timer = 60;
-    const interval = setInterval(() => {
-      timer--;
-      setResendTimer(timer);
-      if (timer <= 0) {
-        clearInterval(interval);
-      }
-    }, 1000);
   };
 
   const handleSubmit = async (e) => {
@@ -155,79 +115,12 @@ const Login = () => {
               </div>
             </div>
 
-            {/* OTP Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="useOTP"
-                  checked={useOTP}
-                  onChange={(e) => setUseOTP(e.target.checked)}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="useOTP" className="ml-2 block text-sm text-gray-700">
-                  Use OTP for extra security
-                </label>
-              </div>
-              <Shield className="h-5 w-5 text-green-600" />
-            </div>
-
-            {/* OTP Section */}
-            {useOTP && (
-              <div className="space-y-4 border-t pt-4">
-                <div>
-                  <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
-                    One-Time Password (OTP)
-                  </label>
-                  <div className="mt-1 relative">
-                    <input
-                      id="otp"
-                      name="otp"
-                      type="text"
-                      maxLength={6}
-                      value={formData.otp}
-                      onChange={handleChange}
-                      className="input-field pr-24"
-                      placeholder="Enter 6-digit OTP"
-                    />
-                    <button
-                      type="button"
-                      onClick={requestOTP}
-                      disabled={otpLoading || resendTimer > 0}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {otpLoading ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
-                    </button>
-                  </div>
-                  {resendTimer > 0 && (
-                    <p className="mt-1 text-xs text-gray-500 flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      Resend available in {resendTimer}s
-                    </p>
-                  )}
-                  {otpSent && (
-                    <p className="mt-1 text-xs text-green-600">
-                      OTP sent to your email address
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-4">
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
-
-            <div className="flex items-center justify-end">
-              <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-green-600 hover:text-green-500">
-                  Forgot your password?
-                </Link>
-              </div>
-            </div>
 
             <div>
               <button
