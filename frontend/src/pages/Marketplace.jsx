@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { Search, Filter, MapPin, IndianRupee, Package, ShoppingCart } from 'lucide-react';
 
 const Marketplace = () => {
@@ -32,7 +32,7 @@ const Marketplace = () => {
         }
       });
 
-      const response = await axios.get(`/api/crops?${params}`);
+      const response = await axiosInstance.get(`/api/crops?${params}`);
       setCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch crops:', error);

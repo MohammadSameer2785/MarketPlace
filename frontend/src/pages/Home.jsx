@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { TrendingUp, Users, ShoppingCart, Tractor, Star, MapPin, ArrowRight } from 'lucide-react';
 
 const Home = () => {
@@ -19,7 +19,7 @@ const Home = () => {
 
   const fetchTopCrops = async () => {
     try {
-      const response = await axios.get('/api/crops/top-demanded');
+      const response = await axiosInstance.get('/api/crops/top-demanded');
       setTopCrops(response.data);
     } catch (error) {
       console.error('Failed to fetch top crops:', error);
@@ -43,7 +43,7 @@ const Home = () => {
       if (selectedLocation.district) params.append('district', selectedLocation.district);
       if (selectedLocation.village) params.append('village', selectedLocation.village);
       
-      const response = await axios.get(`/api/crops/top-demanded?${params}`);
+      const response = await axiosInstance.get(`/api/crops/top-demanded?${params}`);
       setTopCrops(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to search top crops:', error);
