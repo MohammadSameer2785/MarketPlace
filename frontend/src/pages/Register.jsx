@@ -175,8 +175,15 @@ const Register = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-24"
                   placeholder="John Doe"
+                />
+                <VoiceInput
+                  value={formData.name}
+                  onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
+                  placeholder="Speak your name..."
+                  lang="en"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 />
               </div>
             </div>
@@ -217,8 +224,15 @@ const Register = () => {
                   required
                   value={formData.phone}
                   onChange={handleChange}
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-24"
                   placeholder="+91 98765 43210"
+                />
+                <VoiceInput
+                  value={formData.phone}
+                  onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                  placeholder="Speak your phone number..."
+                  lang="en"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 />
               </div>
             </div>
@@ -303,40 +317,88 @@ const Register = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <input
-                  name="address.state"
-                  type="text"
-                  value={formData.address.state}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="State"
-                />
-                <input
-                  name="address.district"
-                  type="text"
-                  value={formData.address.district}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="District"
-                />
+                <div className="relative">
+                  <input
+                    name="address.state"
+                    type="text"
+                    value={formData.address.state}
+                    onChange={handleChange}
+                    className="input-field pr-24"
+                    placeholder="State"
+                  />
+                  <VoiceInput
+                    value={formData.address.state}
+                    onChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      address: { ...prev.address, state: value }
+                    }))}
+                    placeholder="Speak state..."
+                    lang="en"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    name="address.district"
+                    type="text"
+                    value={formData.address.district}
+                    onChange={handleChange}
+                    className="input-field pr-24"
+                    placeholder="District"
+                  />
+                  <VoiceInput
+                    value={formData.address.district}
+                    onChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      address: { ...prev.address, district: value }
+                    }))}
+                    placeholder="Speak district..."
+                    lang="en"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-2">
-                <input
-                  name="address.village"
-                  type="text"
-                  value={formData.address.village}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Village"
-                />
-                <input
-                  name="address.pincode"
-                  type="text"
-                  value={formData.address.pincode}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Pincode"
-                />
+                <div className="relative">
+                  <input
+                    name="address.village"
+                    type="text"
+                    value={formData.address.village}
+                    onChange={handleChange}
+                    className="input-field pr-24"
+                    placeholder="Village"
+                  />
+                  <VoiceInput
+                    value={formData.address.village}
+                    onChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      address: { ...prev.address, village: value }
+                    }))}
+                    placeholder="Speak village..."
+                    lang="en"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    name="address.pincode"
+                    type="text"
+                    value={formData.address.pincode}
+                    onChange={handleChange}
+                    className="input-field pr-24"
+                    placeholder="Pincode"
+                  />
+                  <VoiceInput
+                    value={formData.address.pincode}
+                    onChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      address: { ...prev.address, pincode: value }
+                    }))}
+                    placeholder="Speak pincode..."
+                    lang="en"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  />
+                </div>
               </div>
             </div>
           </div>
